@@ -1,0 +1,8 @@
+prefix=/home/bhaavan/obstacle_avoidance_ws/devel
+
+Name: potential_field
+Description: Description of potential_field
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
