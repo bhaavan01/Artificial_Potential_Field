@@ -17,8 +17,9 @@ class VelocityController():
         self.Vmax = 0.15 # Max velocity Limit for the robot
         self.kp_l1 = 0.01  # Linear Controller proportional gain1
         self.kp_l2 = 0.05  # Linear Controller proportional gain2
-        self.kp_w_1 = 0.4   # Angular Controller proportional gain1
-        self.kp_w_2 = 1.25  # Angular Controler proportional gain2
+        self.kp_l3 = 0.0015  # Linear Controller proportional gain1
+        self.kp_w_1 = 0.4 * 3/4  # Angular Controller proportional gain1
+        self.kp_w_2 = 1.25 * 3/4 # Angular Controler proportional gain2
         # Position
         self.pos = gmsg.Point()
         #Set the initial positional values of the bot to zero.
@@ -90,7 +91,7 @@ class VelocityController():
                     self.y_r += F_rep * np.sin(o_theta)
         self.min_distance = min_distance
         print("Min Dist:", min_distance)
-        print("Repulsive force: x_r =", self.x_r, ", y_r =", self.y_r)
+        # print("Repulsive force: x_r =", self.x_r, ", y_r =", self.y_r)
 
     def run(self):
         twist = gmsg.Twist()
@@ -103,13 +104,13 @@ class VelocityController():
             d_x = self.x_goal - self.pos.x
             d_y = self.y_goal - self.pos.y
             dist = np.hypot(d_x, d_y)
-            # print("Goal Distance:", dist)
+            print("bot pose                       ", self.pos.x, self.pos.y)
             F_att = self.K_a * dist
             # calculating Attraction force in X and Y direction
             x_a = F_att * d_x
             y_a = F_att * d_y
 
-            print("Attraction Force:", x_a,y_a)
+            # print("Attraction Force:", x_a,y_a)
 
             # Take the resultant Repulsive Force
             x_r = self.x_r
@@ -119,14 +120,14 @@ class VelocityController():
             x_f = x_a - x_r
             y_f = y_a - y_r
             d_f = np.hypot(x_f,y_f)
-            print("resultant force:", x_f, y_f)
+            # print("resultant force:", x_f, y_f)
             # Initialize the repulsive force vectors to zero
             self.x_r = 0.0
             self.y_r = 0.0
             
             theta_f = np.arctan2(y_f, x_f)                      # calculate angle of the final resultant force vector 
             delta = theta_f - self.theta                        # Calculate the error in bot angle from the resultant force vector.
-            delta = np.arctan2(np.sin(delta), np.cos(delta))*3/4
+            delta = np.arctan2(np.sin(delta), np.cos(delta))
             # print("Delta:",delta)
 
             # Calculate the linear velocity of the bot
@@ -136,18 +137,18 @@ class VelocityController():
             elif dist > 2.0:
                 v_x = self.kp_l1 * (d_f)
             else:
-                kp_x = self.kp_l2 + (((self.kp_l2) - self.kp_l1)*(dist - 0.5) / 1.5)      #this is a function which varies the proportional gain value as a function of distance (for smoother movement of bot)
+                kp_x = self.kp_l2 + (((self.kp_l2) - self.kp_l1)*(dist - 0.5) / 1.5)      #this is a function i wrote which varies the proportional gain value as a function of distance (for smoother movement of bot when goal point is nearer)
                 v_x = kp_x * (d_f)
 
-            print ("Before clip:",v_x)
+            # print ("Before clip:",v_x)
             v_x = np.clip(v_x, -1 * self.Vmax, self.Vmax)         #clipping the linear velocity to the max velocity limit.
 
             # Calculate the angular velocity of the bot
             
             if self.min_distance < 0.3:        
-                v_x = 0.025                            #if distance of nearest obstacle is less than 0.3m in FOV, the velocity gets reduced.
+                v_x = 0.025 #self.kp_l3 * (d_f)                            #if distance of nearest obstacle is less than 0.3m in FOV, the velocity gets reduced.
                 w_z = self.kp_w_1 * delta
-
+                # v_x = np.clip(v_x, -0.05, 0.05)
             elif self.min_distance == float('inf'):
                 w_z = self.kp_w_2 * delta              #if there is no obstacle detected, we assign a new angular proportional gain.
             else:
@@ -175,7 +176,7 @@ class VelocityController():
 if __name__ == '__main__':
     try:
         #give the goal point coordinates
-        g = [[8.0, 0.0], [8.0, 7.0], [12.0, 8.0], [14.0, 6.0]]#, [-3.0, 0.0], [-1.0, 0.0]]
+        g =  [[4.0,0.0], [-1.0,0.0]] #[[8.0, 0.0], [8.0, 7.0], [11.0, 7.0], [14.0, 5.5], [19.0, 6.25]] #[[7.0, 0.0], [7.0, 4.0], [9.0, 2.0], [15.0, 2.5]] 
         l = len(g)
         i = 0
         for i in range(l):

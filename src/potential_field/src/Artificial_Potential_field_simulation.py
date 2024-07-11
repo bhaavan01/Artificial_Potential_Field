@@ -17,7 +17,7 @@ class VelocityController():
         self.Vmax = 0.2  # Max velocity Limit for the robot
         self.kp_l1 = 0.00008  # Linear Controller proportional gain1
         self.kp_l2 = 0.01  # Linear Controller proportional gain2
-        self.kp_w_1 = 0.3   # Angular Controler proportional gain1
+        self.kp_w_1 = 0.3 *3/4  # Angular Controler proportional gain1
 
         # Position
         self.pos = gmsg.Point()
@@ -126,7 +126,7 @@ class VelocityController():
 
             theta_f = np.arctan2(y_f, x_f)                      # calculate angle of the final resultant force vector 
             delta = (theta_f - self.theta)                        # Calculate the error in bot angle from the resultant force vector.
-            delta = (np.arctan2(np.sin(delta), np.cos(delta)))*3/4
+            delta = (np.arctan2(np.sin(delta), np.cos(delta)))
             
             # Calculate the linear velocity of the bot
             #I have varied proportional gain constants based on the distance from the goal to get more smoother movements and to stop the bot move slower than required when it is in the vicinity of goal point.
