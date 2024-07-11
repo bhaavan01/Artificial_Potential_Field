@@ -146,6 +146,8 @@ class VelocityController():
             
             if self.min_distance < 0.3:        
                 v_x = 0.025                            #if distance of nearest obstacle is less than 0.3m in FOV, the velocity gets reduced.
+                w_z = self.kp_w_1 * delta
+
             elif self.min_distance == float('inf'):
                 w_z = self.kp_w_2 * delta              #if there is no obstacle detected, we assign a new angular proportional gain.
             else:
